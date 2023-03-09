@@ -2,11 +2,11 @@
 """
 Route module for the API
 """
+from os import getenv
 from api.v1.views import app_views
 from flask import Flask, jsonify, abort, request
 from flask_cors import (CORS, cross_origin)
 import os
-from os import getenv
 
 
 app = Flask(__name__)
@@ -33,28 +33,28 @@ elif AUTH_TYPE == "session_db_auth":
     auth = SessionDBAuth()
 
 
-@ app.errorhandler(404)
-def not_found(error) -> str:
-    """ Not found handler
-    """
-    return jsonify({"error": "Not found"}), 404
-
-
-@ app.errorhandler(401)
+@app.errorhandler(401)
 def unauthorized_error(error) -> str:
     """ Unauthorized handler
     """
     return jsonify({"error": "Unauthorized"}), 401
 
 
-@ app.errorhandler(403)
+@app.errorhandler(403)
 def forbidden_error(error) -> str:
     """ Forbidden handler
     """
     return jsonify({"error": "Forbidden"}), 403
 
 
-@ app.before_request
+@app.errorhandler(404)
+def not_found(error) -> str:
+    """ Not found handler
+    """
+    return jsonify({"error": "Not found"}), 404
+
+
+@app.before_request
 def before_request() -> str:
     """ Before Request Handler
     Requests Validation
@@ -74,6 +74,7 @@ def before_request() -> str:
             and auth.session_cookie(request) is None:
         abort(401)
 
+    # if auth.current_user(request) is None:
     current_user = auth.current_user(request)
     if current_user is None:
         abort(403)
